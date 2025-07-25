@@ -2,10 +2,13 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Прогулки по Ярославлю</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ПроГлуянлку</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
   <script src="app.js" defer></script>
 </head>
@@ -14,7 +17,12 @@
     <h1>Прогулки по Ярославлю</h1>
 
     <label for="startInput">Откуда начнём?</label>
-    <input id="startInput" type="text" placeholder="Советская площадь" />
+    <input
+      id="startInput"
+      type="text"
+      placeholder="Советская площадь"
+      autocomplete="off"
+    />
 
     <p>Выберите интересующую категорию:</p>
     <div id="categories"></div>
@@ -40,8 +48,14 @@
   <div id="route-display" style="display:none;">
     <h2>Ваш маршрут</h2>
     <div id="route-progress"></div>
+    <button
+      id="rebuild-route"
+      style="margin: 10px auto; display: block; max-width: 400px; width: 100%;"
+    >
+      Построить маршрут заново
+    </button>
     <div id="route-info"></div>
-    <div id="map"></div>
+    <div id="map" style="height: 300px; border-radius: 0.5rem;"></div>
   </div>
 
   <div id="promos" style="display:none;">
@@ -57,6 +71,9 @@
   </div>
 
   <div id="tinder-section" style="display:none;">
+    <button id="back-to-tinder" style="display:none; margin-bottom: 1rem;">
+      ← Назад
+    </button>
     <div id="tinder-card" class="tinder-card"></div>
     <div class="tinder-buttons">
       <button id="skip">Пропустить</button>
@@ -65,8 +82,10 @@
   </div>
 
   <div id="place-info" style="display:none;">
-    <button id="back-to-tinder">← Назад</button>
-    <img id="place-img" />
+    <button id="back-to-tinder" style="display:none; margin-bottom: 1rem;">
+      ← Назад
+    </button>
+    <img id="place-img" alt="Фото места" />
     <h3 id="place-name"></h3>
     <p id="place-desc"></p>
     <button id="audio-btn">Слушать аудиогид</button>
