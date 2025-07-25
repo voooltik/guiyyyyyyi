@@ -113,16 +113,42 @@ window.addEventListener("load", () => {
     placeInfo: document.getElementById("place-info"),
   };
 
+  function showMainSection() {
+    sections.main.style.display = "block";
+    sections.route.style.display = "none";
+    sections.promos.style.display = "none";
+    sections.tinder.style.display = "none";
+    sections.placeInfo.style.display = "none";
+
+    navButtons.route.classList.remove("active");
+    navButtons.promos.classList.remove("active");
+    navButtons.tinder.classList.remove("active");
+  }
+
   Object.entries(navButtons).forEach(([key, btn]) => {
     btn.addEventListener("click", () => {
       Object.values(sections).forEach((s) => (s.style.display = "none"));
       Object.values(navButtons).forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      sections[key].style.display = "block";
-      if (key === "tinder") renderTinderCard();
 
-      // При переключении обратно на выбор места восстанавливаем UI кнопок и карточек
+      btn.classList.add("active");
+
+      // Если маршрут пустой и выбрана вкладка route, показываем категории (главный экран)
+      if (key === "route") {
+        if (route.length === 0) {
+          // Показать категории, вернуть на главный экран
+          sections.main.style.display = "block";
+          navButtons.route.classList.remove("active");
+          navButtons.tinder.classList.add("active");
+          return;
+        }
+      }
+
+      sections[key].style.display = "block";
+
       if (key === "tinder") {
+        renderTinderCard();
+
+        // Восстановить UI выбора места
         document.getElementById("tinder-card").style.display = "block";
         document.querySelector(".tinder-buttons").style.display = "flex";
         document.getElementById("back-to-tinder").style.display = "none";
@@ -190,22 +216,32 @@ window.addEventListener("load", () => {
       });
   });
 
-  // Кнопка "Назад" для возврата из режима «Иду» в выбор места
-  const backBtn = document.getElementById("back-to-tinder");
-  backBtn.style.display = "none"; // по умолчанию скрыта
+  // Кнопка "Построить маршрут заново"
+  document.getElementById("rebuild-route")?.addEventListener("click", () => {
+    route = [];
+    currentStep = 0;
+    selectedTags.clear();
+    renderCategoryMenu();
 
+    sections.route.style.display = "none";
+    sections.main.style.display = "block";
+
+    Object.values(navButtons).forEach((b) => b.classList.remove("active"));
+  });
+
+  // Кнопка "Назад" во вкладке выбора места
+  const backBtn = document.getElementById("back-to-tinder");
+  backBtn.style.display = "none";
   backBtn.addEventListener("click", () => {
     sections.route.style.display = "none";
     sections.tinder.style.display = "block";
     navButtons.route.classList.remove("active");
     navButtons.tinder.classList.add("active");
 
-    // Восстанавливаем выбор места
     document.getElementById("tinder-card").style.display = "block";
     document.querySelector(".tinder-buttons").style.display = "flex";
     backBtn.style.display = "none";
 
-    // Очищаем маршрут и сбрасываем состояние
     route = [];
     currentStep = 0;
     stage = "map";
@@ -280,12 +316,10 @@ window.addEventListener("load", () => {
   document.getElementById("go").addEventListener("click", () => {
     if (!places.length || tinderIndex >= places.length) return;
 
-    // Выбрали место — делаем из него маршрут из одного пункта
     route = [places[tinderIndex]];
     currentStep = 0;
     stage = "map";
 
-    // Показываем карту и кнопку «Назад», скрываем выбор
     sections.main.style.display = "none";
     sections.route.style.display = "block";
     navButtons.route.classList.add("active");
