@@ -45,7 +45,6 @@ const categoryData = {
   }
 };
 
-// Получить координаты по названию места через Nominatim
 function getCoordinates(placeName) {
   return fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(placeName)}&format=json&limit=1`)
     .then(res => res.json())
@@ -58,14 +57,12 @@ function getCoordinates(placeName) {
     });
 }
 
-// Получить координаты пользователя через геолокацию с fallback
 function getUserCoordinates(defaultPlaceName = "Советская площадь") {
   return new Promise((resolve, reject) => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(pos => {
         resolve([pos.coords.latitude, pos.coords.longitude]);
       }, () => {
-        // При отказе или ошибке - получить по названию
         getCoordinates(defaultPlaceName).then(resolve).catch(reject);
       }, {timeout: 5000});
     } else {
@@ -74,7 +71,6 @@ function getUserCoordinates(defaultPlaceName = "Советская площад�
   });
 }
 
-// Отрисовать маршрут на карте между двумя точками
 function renderRouteOnMap(startCoords, endCoords) {
   if (mapInstance) mapInstance.remove();
 
@@ -124,6 +120,13 @@ window.addEventListener("load", () => {
       btn.classList.add("active");
       sections[key].style.display = "block";
       if (key === "tinder") renderTinderCard();
+
+      // При переключении обратно на выбор места восстанавливаем UI кнопок и карточек
+      if (key === "tinder") {
+        document.getElementById("tinder-card").style.display = "block";
+        document.querySelector(".tinder-buttons").style.display = "flex";
+        document.getElementById("back-to-tinder").style.display = "none";
+      }
     });
   });
 
@@ -185,6 +188,27 @@ window.addEventListener("load", () => {
           showStep();
         });
       });
+  });
+
+  // Кнопка "Назад" для возврата из режима «Иду» в выбор места
+  const backBtn = document.getElementById("back-to-tinder");
+  backBtn.style.display = "none"; // по умолчанию скрыта
+
+  backBtn.addEventListener("click", () => {
+    sections.route.style.display = "none";
+    sections.tinder.style.display = "block";
+    navButtons.route.classList.remove("active");
+    navButtons.tinder.classList.add("active");
+
+    // Восстанавливаем выбор места
+    document.getElementById("tinder-card").style.display = "block";
+    document.querySelector(".tinder-buttons").style.display = "flex";
+    backBtn.style.display = "none";
+
+    // Очищаем маршрут и сбрасываем состояние
+    route = [];
+    currentStep = 0;
+    stage = "map";
   });
 
   function renderCategoryMenu() {
@@ -261,10 +285,16 @@ window.addEventListener("load", () => {
     currentStep = 0;
     stage = "map";
 
+    // Показываем карту и кнопку «Назад», скрываем выбор
     sections.main.style.display = "none";
     sections.route.style.display = "block";
     navButtons.route.classList.add("active");
     navButtons.tinder.classList.remove("active");
+
+    document.getElementById("tinder-card").style.display = "none";
+    document.querySelector(".tinder-buttons").style.display = "none";
+
+    backBtn.style.display = "inline-block";
 
     const startPoint = document.getElementById("startInput").value.trim() || "Советская площадь";
 
@@ -282,7 +312,6 @@ window.addEventListener("load", () => {
       });
   });
 
-  // Показать текущий шаг маршрута (карта или инфо)
   function showStep() {
     const routeSection = document.getElementById("route-display");
     const infoSection = document.getElementById("place-info");
@@ -318,18 +347,15 @@ window.addEventListener("load", () => {
         }
         stage = "map";
 
-        // Получаем текущие координаты предыдущего и следующего места для маршрута
         const prevPlace = route[currentStep - 1];
         const nextPlace = route[currentStep];
 
-        // Рисуем маршрут между этими точками
         getUserCoordinates(prevPlace.name)
           .then((startCoords) => {
             renderRouteOnMap(startCoords, nextPlace.coordinates);
             showStep();
           })
           .catch(() => {
-            // fallback если не нашли координаты по названию
             renderRouteOnMap(prevPlace.coordinates, nextPlace.coordinates);
             showStep();
           });
@@ -352,24 +378,18 @@ window.addEventListener("load", () => {
   }
 
   function finishRoute() {
-    const infoSection = document.getElementById("place-info");
     alert("🎉 Поздравляем! Маршрут завершён.");
 
-    // Очистка маршрута
     route = [];
     currentStep = 0;
     stage = "map";
 
-    // Переход на главный экран выбора категорий
-    infoSection.style.display = "none";
+    sections.placeInfo.style.display = "none";
     sections.route.style.display = "none";
     sections.main.style.display = "block";
 
     Object.values(navButtons).forEach((b) => b.classList.remove("active"));
-    navButtons.route.classList.remove("active");
-    navButtons.tinder.classList.remove("active");
 
-    // Можно обновить UI, например очистить выделения категорий
     selectedTags.clear();
     renderCategoryMenu();
   }
