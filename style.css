@@ -3,17 +3,29 @@ body {
   font-family: 'Arial', sans-serif;
   background-color: #1e1e2f;
   color: #f3f3f3;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-bottom: 3.5rem; /* место под футер */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 .container {
   padding: 1rem;
   max-width: 600px;
   margin: auto;
+  flex-grow: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 h1, h2 {
   text-align: center;
   margin: 1rem 0;
+  font-size: 1.5rem;
 }
 
 .activity-circle {
@@ -26,6 +38,8 @@ h1, h2 {
   margin: 0.3rem;
   transition: 0.3s ease;
   user-select: none;
+  min-width: 80px;
+  text-align: center;
 }
 
 .activity-circle.selected {
@@ -35,13 +49,15 @@ h1, h2 {
 
 select, input {
   width: 100%;
-  padding: 0.6rem;
+  padding: 0.7rem;
   margin: 0.5rem 0 1rem;
   border: none;
   border-radius: 0.4rem;
   background: #2c2c3f;
   color: white;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  min-height: 44px;
+  box-sizing: border-box;
 }
 
 button {
@@ -49,12 +65,20 @@ button {
   background-color: #3b82f6;
   color: white;
   border: none;
-  border-radius: 0.4rem;
+  border-radius: 0.5rem;
   font-weight: bold;
-  font-size: 1rem;
+  font-size: 1.1rem;
   cursor: pointer;
-  margin: 0.3rem;
-  transition: 0.2s ease;
+  margin: 0.3rem 0;
+  min-height: 44px;
+  transition: background 0.2s ease;
+  user-select: none;
+  touch-action: manipulation;
+  width: 100%;
+  max-width: 400px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 button:hover {
@@ -65,6 +89,9 @@ button:hover {
   height: 300px;
   margin-top: 1rem;
   border-radius: 0.5rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .promo-card {
@@ -73,11 +100,14 @@ button:hover {
   padding: 0.7rem 1rem;
   border-radius: 0.4rem;
   margin: 0.5rem 0;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #bottom-nav {
   position: fixed;
-  bottom: 0;
+  bottom: 3rem; /* над футером */
   left: 0;
   right: 0;
   background: #111827;
@@ -86,30 +116,40 @@ button:hover {
   padding: 0.6rem 0;
   border-top: 1px solid #374151;
   z-index: 1000;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #bottom-nav button {
   background: none;
   color: #9ca3af;
   font-weight: bold;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  flex-grow: 1;
+  padding: 0.5rem 0;
+  border: none;
+  outline: none;
 }
 
 #bottom-nav button.active {
-  color: #ffffff;
+  color: #60a5fa;
   border-bottom: 2px solid #60a5fa;
 }
 
 footer {
   text-align: center;
-  padding: 1rem 0 4rem;
+  padding: 1rem 0;
   font-size: 0.9rem;
   color: #9ca3af;
   position: fixed;
-  bottom: 3rem;
+  bottom: 0;
   left: 0;
   width: 100%;
-  background: transparent;
+  background: rgba(17, 24, 39, 0.85);
+  z-index: 10000;
+  user-select: none;
+  pointer-events: none; /* Чтобы не мешал кликам */
 }
 
 .tinder-card {
@@ -120,6 +160,9 @@ footer {
   box-shadow: 0 0 10px rgba(0,0,0,0.3);
   text-align: center;
   animation: fadeIn 0.5s ease-in-out;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .tinder-buttons {
@@ -132,6 +175,9 @@ footer {
 #place-info {
   padding: 1rem;
   text-align: center;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #place-info img {
@@ -146,7 +192,7 @@ footer {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* 🔽 Новые стили для категорий и маршрута */
+/* Новые стили для категорий и маршрута */
 
 .category-toggle {
   background-color: #2c2c3f;
@@ -159,6 +205,9 @@ footer {
   margin-top: 0.5rem;
   cursor: pointer;
   transition: background 0.3s;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .category-toggle:hover {
@@ -170,11 +219,19 @@ footer {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #place-info button#next-place {
   margin-top: 1rem;
   background-color: #10b981;
+  max-width: 400px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
 }
 
 #place-info button#next-place:hover {
@@ -186,4 +243,30 @@ footer {
   font-size: 0.95rem;
   color: #9ca3af;
   margin-bottom: 1rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Мелкие правки для мобильных экранов */
+@media (max-width: 360px) {
+  h1, h2 {
+    font-size: 1.3rem;
+  }
+  button {
+    font-size: 1rem;
+    min-height: 44px;
+  }
+  #bottom-nav button {
+    font-size: 1rem;
+  }
+  .activity-circle {
+    min-width: 60px;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+  select, input {
+    font-size: 1rem;
+    padding: 0.5rem;
+  }
 }
