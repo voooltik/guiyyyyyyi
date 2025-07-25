@@ -1,0 +1,189 @@
+body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #1e1e2f;
+  color: #f3f3f3;
+}
+
+.container {
+  padding: 1rem;
+  max-width: 600px;
+  margin: auto;
+}
+
+h1, h2 {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.activity-circle {
+  display: inline-block;
+  padding: 0.8rem 1.2rem;
+  border-radius: 9999px;
+  background-color: #374151;
+  cursor: pointer;
+  font-weight: bold;
+  margin: 0.3rem;
+  transition: 0.3s ease;
+  user-select: none;
+}
+
+.activity-circle.selected {
+  background-color: #60a5fa;
+  color: white;
+}
+
+select, input {
+  width: 100%;
+  padding: 0.6rem;
+  margin: 0.5rem 0 1rem;
+  border: none;
+  border-radius: 0.4rem;
+  background: #2c2c3f;
+  color: white;
+  font-size: 1rem;
+}
+
+button {
+  padding: 0.7rem 1.4rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 0.4rem;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  margin: 0.3rem;
+  transition: 0.2s ease;
+}
+
+button:hover {
+  background-color: #2563eb;
+}
+
+#map {
+  height: 300px;
+  margin-top: 1rem;
+  border-radius: 0.5rem;
+}
+
+.promo-card {
+  background: #2f2f45;
+  border-left: 5px solid #60a5fa;
+  padding: 0.7rem 1rem;
+  border-radius: 0.4rem;
+  margin: 0.5rem 0;
+}
+
+#bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #111827;
+  display: flex;
+  justify-content: space-around;
+  padding: 0.6rem 0;
+  border-top: 1px solid #374151;
+  z-index: 1000;
+}
+
+#bottom-nav button {
+  background: none;
+  color: #9ca3af;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+#bottom-nav button.active {
+  color: #ffffff;
+  border-bottom: 2px solid #60a5fa;
+}
+
+footer {
+  text-align: center;
+  padding: 1rem 0 4rem;
+  font-size: 0.9rem;
+  color: #9ca3af;
+  position: fixed;
+  bottom: 3rem;
+  left: 0;
+  width: 100%;
+  background: transparent;
+}
+
+.tinder-card {
+  background: #2f2f45;
+  padding: 1rem;
+  margin: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  text-align: center;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.tinder-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+#place-info {
+  padding: 1rem;
+  text-align: center;
+}
+
+#place-info img {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 🔽 Новые стили для категорий и маршрута */
+
+.category-toggle {
+  background-color: #2c2c3f;
+  color: white;
+  font-weight: bold;
+  padding: 0.6rem 1rem;
+  width: 100%;
+  text-align: left;
+  border-radius: 0.4rem;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.category-toggle:hover {
+  background-color: #374151;
+}
+
+.tag-container {
+  padding: 0.5rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+#place-info button#next-place {
+  margin-top: 1rem;
+  background-color: #10b981;
+}
+
+#place-info button#next-place:hover {
+  background-color: #059669;
+}
+
+#route-progress {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #9ca3af;
+  margin-bottom: 1rem;
+}

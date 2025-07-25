@@ -1,0 +1,130 @@
+[
+  {
+    "name": "Музей-заповедник Ярославля",
+    "description": "Большой музейный комплекс с историей города.",
+    "coordinates": [57.6260, 39.8900],
+    "tags": ["museum", "history"],
+    "age": "all",
+    "image": "https://via.placeholder.com/400x200.png?text=Музей+Ярославля"
+  },
+  {
+    "name": "Галерея современного искусства «Форма»",
+    "description": "Выставки современных художников и арт-объекты.",
+    "coordinates": [57.6245, 39.8833],
+    "tags": ["gallery", "loft", "event"],
+    "age": "teen",
+    "image": "https://via.placeholder.com/400x200.png?text=Галерея+Форма"
+  },
+  {
+    "name": "Кафе «Зерно»",
+    "description": "Кофейня с атмосферой и specialty-кофе.",
+    "coordinates": [57.6230, 39.8850],
+    "tags": ["cafe", "instagram", "date"],
+    "age": "teen",
+    "image": "https://via.placeholder.com/400x200.png?text=Кафе+Зерно"
+  },
+  {
+    "name": "Ресторан «Терем»",
+    "description": "Русская кухня в уютной атмосфере.",
+    "coordinates": [57.6220, 39.8880],
+    "tags": ["restaurant"],
+    "age": "adult",
+    "image": "https://via.placeholder.com/400x200.png?text=Ресторан+Терем"
+  },
+  {
+    "name": "Бар «Ночной дозор»",
+    "description": "Место для вечернего отдыха с живой музыкой.",
+    "coordinates": [57.6200, 39.8870],
+    "tags": ["bar", "live"],
+    "age": "adult",
+    "image": "https://via.placeholder.com/400x200.png?text=Бар+Ночной+дозор"
+  },
+  {
+    "name": "Уличный фуд-корт «Вкус улиц»",
+    "description": "Место с разнообразием уличной еды и напитков.",
+    "coordinates": [57.6250, 39.8820],
+    "tags": ["streetfood", "market"],
+    "age": "all",
+    "image": "https://via.placeholder.com/400x200.png?text=Фуд-корт+Вкус+улиц"
+  },
+  {
+    "name": "Парк культуры и отдыха",
+    "description": "Зелёная зона с дорожками и зонами отдыха.",
+    "coordinates": [57.6300, 39.8790],
+    "tags": ["park", "nature", "walk"],
+    "age": "all",
+    "image": "https://via.placeholder.com/400x200.png?text=Парк+Культуры"
+  },
+  {
+    "name": "Набережная реки Волги",
+    "description": "Популярное место для прогулок и отдыха у воды.",
+    "coordinates": [57.6241, 39.8846],
+    "tags": ["embankment", "walk", "nature"],
+    "age": "all",
+    "image": "https://via.placeholder.com/400x200.png?text=Набережная+Волги"
+  },
+  {
+    "name": "Смотровая площадка на Царёв Кургане",
+    "description": "Красивый вид на город и окрестности.",
+    "coordinates": [57.6280, 39.8905],
+    "tags": ["viewpoint", "nature"],
+    "age": "all",
+    "image": "https://via.placeholder.com/400x200.png?text=Смотровая+площадка"
+  },
+  {
+    "name": "Пешеходный маршрут «Золотое кольцо»",
+    "description": "Маршрут по историческим и культурным местам.",
+    "coordinates": [57.6265, 39.8830],
+    "tags": ["walk", "history"],
+    "age": "all",
+    "image": "https://via.placeholder.com/400x200.png?text=Пешеходный+маршрут"
+  },
+  {
+    "name": "Креативное пространство «Лофт»",
+    "description": "Место для творчества, выставок и встреч.",
+    "coordinates": [57.6222, 39.8811],
+    "tags": ["loft", "event", "instagram"],
+    "age": "teen",
+    "image": "https://via.placeholder.com/400x200.png?text=Креативное+пространство"
+  },
+  {
+    "name": "Место для свиданий «Розовый сад»",
+    "description": "Романтическая зона с красивыми цветами и лавочками.",
+    "coordinates": [57.6210, 39.8850],
+    "tags": ["date", "withkids", "nature"],
+    "age": "all",
+    "image": "https://via.placeholder.com/400x200.png?text=Розовый+сад"
+  },
+  {
+    "name": "Рынок «Старый город»",
+    "description": "Местный рынок с продуктами и сувенирами.",
+    "coordinates": [57.6233, 39.8822],
+    "tags": ["market", "souvenir"],
+    "age": "all",
+    "image": "https://via.placeholder.com/400x200.png?text=Рынок+Старый+город"
+  },
+  {
+    "name": "Сувенирный магазин «Ярославль»",
+    "description": "Большой выбор памятных подарков и сувениров.",
+    "coordinates": [57.6215, 39.8890],
+    "tags": ["souvenir"],
+    "age": "all",
+    "image": "https://via.placeholder.com/400x200.png?text=Сувенирный+магазин"
+  },
+  {
+    "name": "Стрит-арт на улице Кирова",
+    "description": "Красочные граффити и уличные арт-объекты.",
+    "coordinates": [57.6208, 39.8840],
+    "tags": ["streetart", "instagram", "walk"],
+    "age": "teen",
+    "image": "https://via.placeholder.com/400x200.png?text=Стрит-арт+Кирова"
+  },
+  {
+    "name": "Живая музыка в баре «Blue Note»",
+    "description": "Концерты и живые выступления местных музыкантов.",
+    "coordinates": [57.6199, 39.8877],
+    "tags": ["live", "bar"],
+    "age": "adult",
+    "image": "https://via.placeholder.com/400x200.png?text=Бар+Blue+Note"
+  }
+]

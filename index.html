@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Прогулки по Ярославлю</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="container" id="main-section">
+    <h1>Прогулки по Ярославлю</h1>
+
+    <label for="startInput">Откуда начнём?</label>
+    <input id="startInput" type="text" placeholder="Советская площадь" />
+
+    <p>Выберите интересующую категорию:</p>
+    <div id="categories"></div>
+
+    <label for="age">Ваш возраст</label>
+    <select id="age">
+      <option value="child">Детям</option>
+      <option value="teen">Подросткам</option>
+      <option value="adult" selected>Взрослым</option>
+      <option value="all">Без разницы</option>
+    </select>
+
+    <label for="duration">Сколько времени?</label>
+    <select id="duration">
+      <option value="1">1 час</option>
+      <option value="2">2 часа</option>
+      <option value="3">3 часа</option>
+    </select>
+
+    <button id="show-route">Показать маршрут</button>
+  </div>
+
+  <div id="route-display" style="display:none;">
+    <h2>Ваш маршрут</h2>
+    <div id="route-progress"></div>
+    <div id="route-info"></div>
+    <div id="map"></div>
+  </div>
+
+  <div id="promos" style="display:none;">
+    <h2>Промокоды</h2>
+    <div class="promo-card">
+      <strong>Ресторан Уют</strong><br />
+      Скидка 10% — <code>YAR10</code>
+    </div>
+    <div class="promo-card">
+      <strong>Музей истории</strong><br />
+      2 билета по цене одного — <code>MUSEUM2X1</code>
+    </div>
+  </div>
+
+  <div id="tinder-section" style="display:none;">
+    <div id="tinder-card" class="tinder-card"></div>
+    <div class="tinder-buttons">
+      <button id="skip">Пропустить</button>
+      <button id="go">Иду</button>
+    </div>
+  </div>
+
+  <div id="place-info" style="display:none;">
+    <button id="back-to-tinder">← Назад</button>
+    <img id="place-img" />
+    <h3 id="place-name"></h3>
+    <p id="place-desc"></p>
+    <button id="audio-btn">Слушать аудиогид</button>
+    <button id="next-place">Следующее место</button>
+  </div>
+
+  <footer>Created by volt26</footer>
+
+  <div id="bottom-nav">
+    <button id="nav-route" class="active">Маршрут</button>
+    <button id="nav-promos">Бонусы</button>
+    <button id="nav-tinder">Выбор места</button>
+  </div>
+</body>
+</html>
