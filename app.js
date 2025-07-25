@@ -5,6 +5,7 @@ let currentStep = 0;
 let stage = "map"; // "map" или "info"
 let mapInstance = null;
 let tinderIndex = 0;
+let currentPositionCoords = null; // храним текущие координаты для маршрута
 
 const categoryData = {
   "🖼 Культурное": {
@@ -45,7 +46,7 @@ const categoryData = {
   }
 };
 
-// Получить координаты по названию места через Яндекс геокодер
+// Получить координаты по названию через Яндекс Геокодер
 function geocode(placeName) {
   return ymaps.geocode(placeName).then(res => {
     const firstGeoObject = res.geoObjects.get(0);
@@ -54,7 +55,7 @@ function geocode(placeName) {
   });
 }
 
-// Построить маршрут на карте от startCoords до endCoords
+// Инициализировать карту и построить маршрут
 function initMapAndRoute(startCoords, endCoords) {
   if (mapInstance) mapInstance.destroy();
 
@@ -83,7 +84,11 @@ function initMapAndRoute(startCoords, endCoords) {
     routingMode: 'pedestrian'
   }).then(route => {
     mapInstance.geoObjects.add(route);
-    mapInstance.setBounds(route.getBounds(), { checkZoomRange: true });
+    // Правильно берём bounds у маршрута
+    const bounds = route.getWayPoints().getBounds() || route.getPaths().getBounds();
+    if (bounds) {
+      mapInstance.setBounds(bounds, { checkZoomRange: true });
+    }
   }).catch(err => {
     alert('Не удалось построить маршрут: ' + err.message);
   });
@@ -182,12 +187,14 @@ window.addEventListener("load", () => {
 
     geocode(startPoint)
       .then(startCoords => {
+        currentPositionCoords = startCoords; // сохраняем старт
         initMapAndRoute(startCoords, route[currentStep].coordinates);
         showStep();
       })
       .catch(() => {
         alert("Не удалось определить начальную точку. Используем Советскую площадь.");
-        initMapAndRoute([57.6261, 39.8845], route[currentStep].coordinates);
+        currentPositionCoords = [57.6261, 39.8845];
+        initMapAndRoute(currentPositionCoords, route[currentStep].coordinates);
         showStep();
       });
   });
@@ -244,12 +251,14 @@ window.addEventListener("load", () => {
 
     geocode(startPoint)
       .then(startCoords => {
+        currentPositionCoords = startCoords;
         initMapAndRoute(startCoords, route[0].coordinates);
         showStep();
       })
       .catch(() => {
         alert("Не удалось определить начальную точку. Используем Советскую площадь.");
-        initMapAndRoute([57.6261, 39.8845], route[0].coordinates);
+        currentPositionCoords = [57.6261, 39.8845];
+        initMapAndRoute(currentPositionCoords, route[0].coordinates);
         showStep();
       });
   });
@@ -291,15 +300,12 @@ window.addEventListener("load", () => {
         const prevPlace = route[currentStep - 1];
         const nextPlace = route[currentStep];
 
-        geocode(prevPlace.name)
-          .then(startCoords => {
-            initMapAndRoute(startCoords, nextPlace.coordinates);
-            showStep();
-          })
-          .catch(() => {
-            initMapAndRoute(prevPlace.coordinates, nextPlace.coordinates);
-            showStep();
-          });
+        // Строим маршрут от текущей позиции к следующему месту
+        const startCoords = currentPositionCoords || prevPlace.coordinates;
+        currentPositionCoords = nextPlace.coordinates;
+
+        initMapAndRoute(startCoords, nextPlace.coordinates);
+        showStep();
       };
     }
   }
@@ -324,6 +330,7 @@ window.addEventListener("load", () => {
     route = [];
     currentStep = 0;
     stage = "map";
+    currentPositionCoords = null;
 
     sections.placeInfo.style.display = "none";
     sections.route.style.display = "none";
