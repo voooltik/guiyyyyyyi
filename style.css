@@ -8,23 +8,31 @@ body {
   flex-direction: column;
   min-height: 100vh;
   padding-bottom: 3.5rem; /* место под футер */
+  padding-top: env(safe-area-inset-top, 20px);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
-.container {
-  padding: 1rem;
+.container,
+#route-display,
+#promos,
+#tinder-section,
+#place-info {
+  padding: calc(env(safe-area-inset-top, 20px) + 1rem) 1rem 0 1rem;
   max-width: 600px;
   margin: auto;
   flex-grow: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
 }
 
 h1, h2 {
   text-align: center;
-  margin: 1rem 0;
+  margin: 0 0 1rem 0;
+  padding-top: env(safe-area-inset-top, 20px);
   font-size: 1.5rem;
 }
 
