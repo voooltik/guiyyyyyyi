@@ -5,7 +5,6 @@ let currentStep = 0;
 let stage = "map"; // "map" или "info"
 let mapInstance = null;
 let tinderIndex = 0;
-let currentPositionCoords = null; // храним текущие координаты для маршрута
 
 const categoryData = {
   "🖼 Культурное": {
@@ -46,7 +45,9 @@ const categoryData = {
   }
 };
 
-// Получить координаты по названию через Яндекс Геокодер
+const DEFAULT_START = [57.6261, 39.8845]; // Советская площадь
+
+// Геокодируем название места в координаты через Яндекс API
 function geocode(placeName) {
   return ymaps.geocode(placeName).then(res => {
     const firstGeoObject = res.geoObjects.get(0);
@@ -55,8 +56,8 @@ function geocode(placeName) {
   });
 }
 
-// Инициализировать карту и построить маршрут
-function initMapAndRoute(startCoords, endCoords) {
+// Отрисовка маршрута между двумя координатами на Яндекс карте
+function renderRouteFromTo(startCoords, endCoords) {
   if (mapInstance) mapInstance.destroy();
 
   mapInstance = new ymaps.Map("map", {
@@ -84,11 +85,7 @@ function initMapAndRoute(startCoords, endCoords) {
     routingMode: 'pedestrian'
   }).then(route => {
     mapInstance.geoObjects.add(route);
-    // Правильно берём bounds у маршрута
-    const bounds = route.getWayPoints().getBounds() || route.getPaths().getBounds();
-    if (bounds) {
-      mapInstance.setBounds(bounds, { checkZoomRange: true });
-    }
+    mapInstance.setBounds(route.getBounds(), { checkZoomRange: true });
   }).catch(err => {
     alert('Не удалось построить маршрут: ' + err.message);
   });
@@ -121,7 +118,7 @@ window.addEventListener("load", () => {
 
       if (key === "route") {
         if (route.length === 0) {
-          // Нет маршрута — показываем главный экран с категориями
+          // Если нет маршрута — показываем главный экран с категориями
           sections.main.style.display = "block";
           resetNavigation();
           navButtons.route.classList.remove("active");
@@ -165,7 +162,6 @@ window.addEventListener("load", () => {
     const ageFilter = document.getElementById("age").value;
     const duration = parseInt(document.getElementById("duration").value);
     const maxPlaces = duration * 2;
-    const startPoint = document.getElementById("startInput").value.trim() || "Советская площадь";
 
     route = places.filter(p =>
       p.tags.some(tag => selectedTags.has(tag)) &&
@@ -185,16 +181,14 @@ window.addEventListener("load", () => {
     resetNavigation();
     navButtons.route.classList.add("active");
 
-    geocode(startPoint)
+    const startPointName = document.getElementById("startInput").value.trim() || "Советская площадь";
+    geocode(startPointName)
       .then(startCoords => {
-        currentPositionCoords = startCoords; // сохраняем старт
-        initMapAndRoute(startCoords, route[currentStep].coordinates);
+        renderRouteFromTo(startCoords, route[currentStep].coordinates);
         showStep();
       })
       .catch(() => {
-        alert("Не удалось определить начальную точку. Используем Советскую площадь.");
-        currentPositionCoords = [57.6261, 39.8845];
-        initMapAndRoute(currentPositionCoords, route[currentStep].coordinates);
+        renderRouteFromTo(DEFAULT_START, route[currentStep].coordinates);
         showStep();
       });
   });
@@ -247,18 +241,15 @@ window.addEventListener("load", () => {
     resetNavigation();
     navButtons.route.classList.add("active");
 
-    const startPoint = document.getElementById("startInput").value.trim() || "Советская площадь";
+    const startPointName = document.getElementById("startInput").value.trim() || "Советская площадь";
 
-    geocode(startPoint)
+    geocode(startPointName)
       .then(startCoords => {
-        currentPositionCoords = startCoords;
-        initMapAndRoute(startCoords, route[0].coordinates);
+        renderRouteFromTo(startCoords, route[0].coordinates);
         showStep();
       })
       .catch(() => {
-        alert("Не удалось определить начальную точку. Используем Советскую площадь.");
-        currentPositionCoords = [57.6261, 39.8845];
-        initMapAndRoute(currentPositionCoords, route[0].coordinates);
+        renderRouteFromTo(DEFAULT_START, route[0].coordinates);
         showStep();
       });
   });
@@ -300,11 +291,7 @@ window.addEventListener("load", () => {
         const prevPlace = route[currentStep - 1];
         const nextPlace = route[currentStep];
 
-        // Строим маршрут от текущей позиции к следующему месту
-        const startCoords = currentPositionCoords || prevPlace.coordinates;
-        currentPositionCoords = nextPlace.coordinates;
-
-        initMapAndRoute(startCoords, nextPlace.coordinates);
+        renderRouteFromTo(prevPlace.coordinates, nextPlace.coordinates);
         showStep();
       };
     }
@@ -330,7 +317,6 @@ window.addEventListener("load", () => {
     route = [];
     currentStep = 0;
     stage = "map";
-    currentPositionCoords = null;
 
     sections.placeInfo.style.display = "none";
     sections.route.style.display = "none";
