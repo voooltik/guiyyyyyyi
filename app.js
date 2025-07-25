@@ -1,4 +1,3 @@
-// app.js
 let places = [];
 let selectedTags = new Set();
 let route = [];
@@ -46,11 +45,68 @@ const categoryData = {
   }
 };
 
+// Получить координаты по названию места через Nominatim
+function getCoordinates(placeName) {
+  return fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(placeName)}&format=json&limit=1`)
+    .then(res => res.json())
+    .then(data => {
+      if (data && data.length > 0) {
+        return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+      } else {
+        return Promise.reject('Место не найдено');
+      }
+    });
+}
+
+// Получить координаты пользователя через геолокацию с fallback
+function getUserCoordinates(defaultPlaceName = "Советская площадь") {
+  return new Promise((resolve, reject) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        resolve([pos.coords.latitude, pos.coords.longitude]);
+      }, () => {
+        // При отказе или ошибке - получить по названию
+        getCoordinates(defaultPlaceName).then(resolve).catch(reject);
+      }, {timeout: 5000});
+    } else {
+      getCoordinates(defaultPlaceName).then(resolve).catch(reject);
+    }
+  });
+}
+
+// Отрисовать маршрут на карте между двумя точками
+function renderRouteOnMap(startCoords, endCoords) {
+  if (mapInstance) mapInstance.remove();
+
+  mapInstance = L.map("map").setView(startCoords, 14);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors",
+  }).addTo(mapInstance);
+
+  L.marker(startCoords).addTo(mapInstance).bindPopup("Вы здесь").openPopup();
+  L.marker(endCoords).addTo(mapInstance).bindPopup("Место назначения");
+
+  const url = `https://router.project-osrm.org/route/v1/foot/${startCoords[1]},${startCoords[0]};${endCoords[1]},${endCoords[0]}?overview=full&geometries=geojson`;
+
+  fetch(url)
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.routes && data.routes[0]) {
+        L.geoJSON(data.routes[0].geometry, {
+          style: { color: "deepskyblue", weight: 5 },
+        }).addTo(mapInstance);
+      } else {
+        alert("Маршрут не найден");
+      }
+    })
+    .catch(() => alert("Ошибка при построении маршрута"));
+}
+
 window.addEventListener("load", () => {
   const navButtons = {
     route: document.getElementById("nav-route"),
     promos: document.getElementById("nav-promos"),
-    tinder: document.getElementById("nav-tinder")
+    tinder: document.getElementById("nav-tinder"),
   };
 
   const sections = {
@@ -58,7 +114,7 @@ window.addEventListener("load", () => {
     route: document.getElementById("route-display"),
     promos: document.getElementById("promos"),
     tinder: document.getElementById("tinder-section"),
-    placeInfo: document.getElementById("place-info")
+    placeInfo: document.getElementById("place-info"),
   };
 
   Object.entries(navButtons).forEach(([key, btn]) => {
@@ -71,7 +127,6 @@ window.addEventListener("load", () => {
     });
   });
 
-  // Вызовем отрисовку категорий здесь — обязательно!
   renderCategoryMenu();
 
   fetch("./places.json")
@@ -99,10 +154,13 @@ window.addEventListener("load", () => {
     const maxPlaces = duration * 2;
     const startPoint = document.getElementById("startInput").value.trim() || "Советская площадь";
 
-    route = places.filter((p) =>
-      p.tags.some((tag) => selectedTags.has(tag)) &&
-      (ageFilter === "all" || p.age === ageFilter || p.age === "all")
-    ).slice(0, maxPlaces);
+    route = places
+      .filter(
+        (p) =>
+          p.tags.some((tag) => selectedTags.has(tag)) &&
+          (ageFilter === "all" || p.age === ageFilter || p.age === "all")
+      )
+      .slice(0, maxPlaces);
 
     if (route.length === 0) {
       alert("По выбранным категориям нет подходящих мест.");
@@ -114,7 +172,19 @@ window.addEventListener("load", () => {
     sections.main.style.display = "none";
     sections.route.style.display = "block";
     navButtons.route.classList.add("active");
-    showStep(startPoint);
+
+    getUserCoordinates(startPoint)
+      .then((startCoords) => {
+        renderRouteOnMap(startCoords, route[currentStep].coordinates);
+        showStep();
+      })
+      .catch(() => {
+        alert("Не удалось определить начальную точку. Используем Советскую площадь.");
+        getCoordinates("Советская площадь").then((startCoords) => {
+          renderRouteOnMap(startCoords, route[currentStep].coordinates);
+          showStep();
+        });
+      });
   });
 
   function renderCategoryMenu() {
@@ -132,7 +202,7 @@ window.addEventListener("load", () => {
       tagWrap.style.display = "none";
 
       toggleBtn.onclick = () => {
-        tagWrap.style.display = tagWrap.style.display === "none" ? "flex" : "none";
+        tagWrap.style.display = tagWrap.style.display === "none" ? "grid" : "none";
       };
 
       for (let [tag, label] of Object.entries(tags)) {
@@ -184,12 +254,36 @@ window.addEventListener("load", () => {
   });
 
   document.getElementById("go").addEventListener("click", () => {
-    alert(`Вы выбрали: ${places[tinderIndex].name}`);
-    tinderIndex++;
-    renderTinderCard();
+    if (!places.length || tinderIndex >= places.length) return;
+
+    // Выбрали место — делаем из него маршрут из одного пункта
+    route = [places[tinderIndex]];
+    currentStep = 0;
+    stage = "map";
+
+    sections.main.style.display = "none";
+    sections.route.style.display = "block";
+    navButtons.route.classList.add("active");
+    navButtons.tinder.classList.remove("active");
+
+    const startPoint = document.getElementById("startInput").value.trim() || "Советская площадь";
+
+    getUserCoordinates(startPoint)
+      .then((startCoords) => {
+        renderRouteOnMap(startCoords, route[0].coordinates);
+        showStep();
+      })
+      .catch(() => {
+        alert("Не удалось определить начальную точку. Используем Советскую площадь.");
+        getCoordinates("Советская площадь").then((startCoords) => {
+          renderRouteOnMap(startCoords, route[0].coordinates);
+          showStep();
+        });
+      });
   });
 
-  function showStep(startPoint) {
+  // Показать текущий шаг маршрута (карта или инфо)
+  function showStep() {
     const routeSection = document.getElementById("route-display");
     const infoSection = document.getElementById("place-info");
     const place = route[currentStep];
@@ -198,27 +292,11 @@ window.addEventListener("load", () => {
       infoSection.style.display = "none";
       routeSection.style.display = "block";
 
-      // Добавим строку с прогрессом: сколько пройдено и общее количество
-      const progressText = `Пройдено мест: ${currentStep + 1} / ${route.length}`;
-      document.getElementById("route-progress").innerHTML = `
-        <h2>${place.name}</h2>
-        <p style="font-size: 0.9rem; color: #9ca3af;">${progressText}</p>
-      `;
-
+      document.getElementById("route-progress").innerHTML = `<h2>${place.name}</h2>`;
       showButton("i-am-here", "Я тут", () => {
         stage = "info";
         showStep();
       });
-
-      if (mapInstance) {
-        mapInstance.remove();
-      }
-      mapInstance = L.map("map").setView(place.coordinates, 16);
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap contributors"
-      }).addTo(mapInstance);
-
-      L.marker(place.coordinates).addTo(mapInstance).bindPopup(place.name).openPopup();
     } else if (stage === "info") {
       routeSection.style.display = "none";
       infoSection.style.display = "block";
@@ -227,19 +305,34 @@ window.addEventListener("load", () => {
       document.getElementById("place-name").textContent = place.name;
       document.getElementById("place-desc").textContent = place.description;
 
-      document.getElementById("audio-btn").onclick = () => alert("Аудиогид скоро будет доступен.");
+      document.getElementById("audio-btn").onclick = () =>
+        alert("Аудиогид скоро будет доступен.");
 
       const nextBtn = document.getElementById("next-place");
       nextBtn.style.display = "inline-block";
       nextBtn.onclick = () => {
         currentStep++;
         if (currentStep >= route.length) {
-          alert("Маршрут завершён!");
-          infoSection.style.display = "none";
+          finishRoute();
           return;
         }
         stage = "map";
-        showStep();
+
+        // Получаем текущие координаты предыдущего и следующего места для маршрута
+        const prevPlace = route[currentStep - 1];
+        const nextPlace = route[currentStep];
+
+        // Рисуем маршрут между этими точками
+        getUserCoordinates(prevPlace.name)
+          .then((startCoords) => {
+            renderRouteOnMap(startCoords, nextPlace.coordinates);
+            showStep();
+          })
+          .catch(() => {
+            // fallback если не нашли координаты по названию
+            renderRouteOnMap(prevPlace.coordinates, nextPlace.coordinates);
+            showStep();
+          });
       };
     }
   }
@@ -256,5 +349,28 @@ window.addEventListener("load", () => {
     btn.textContent = text;
     btn.onclick = onClick;
     btn.style.display = "inline-block";
+  }
+
+  function finishRoute() {
+    const infoSection = document.getElementById("place-info");
+    alert("🎉 Поздравляем! Маршрут завершён.");
+
+    // Очистка маршрута
+    route = [];
+    currentStep = 0;
+    stage = "map";
+
+    // Переход на главный экран выбора категорий
+    infoSection.style.display = "none";
+    sections.route.style.display = "none";
+    sections.main.style.display = "block";
+
+    Object.values(navButtons).forEach((b) => b.classList.remove("active"));
+    navButtons.route.classList.remove("active");
+    navButtons.tinder.classList.remove("active");
+
+    // Можно обновить UI, например очистить выделения категорий
+    selectedTags.clear();
+    renderCategoryMenu();
   }
 });
