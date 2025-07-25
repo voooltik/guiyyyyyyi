@@ -1,3 +1,10 @@
+/* Общие правила */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   font-family: 'Arial', sans-serif;
@@ -14,21 +21,24 @@ body {
   overflow-x: hidden;
 }
 
+/* Основной контейнер с фиксированной шириной и центрированием */
 .container,
 #route-display,
 #promos,
 #tinder-section,
 #place-info {
-  padding: 1rem 1rem 0 1rem;
-  margin: 0;
+  padding: 1rem;
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
   flex-grow: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
-  /* убрал max-width и margin auto чтобы не сжимать */
 }
 
+/* Заголовки */
 h1, h2 {
   padding-top: 0;
   margin-top: 0;
@@ -36,6 +46,34 @@ h1, h2 {
   font-size: 1.5rem;
 }
 
+/* Категории — занимают 100% от контейнера, без дополнительных ограничений */
+.category-toggle {
+  background-color: #2c2c3f;
+  color: white;
+  font-weight: bold;
+  padding: 0.6rem 1rem;
+  width: 100%;
+  text-align: left;
+  border-radius: 0.4rem;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.category-toggle:hover {
+  background-color: #374151;
+}
+
+/* Обёртка для тегов - не шире контейнера, flex-wrap для переноса */
+.tag-container {
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+/* Кнопки-теги */
 .activity-circle {
   display: inline-block;
   padding: 0.8rem 1.2rem;
@@ -43,11 +81,12 @@ h1, h2 {
   background-color: #374151;
   cursor: pointer;
   font-weight: bold;
-  margin: 0.3rem;
+  margin: 0.3rem 0;
   transition: 0.3s ease;
   user-select: none;
   min-width: 80px;
   text-align: center;
+  white-space: nowrap;
 }
 
 .activity-circle.selected {
@@ -55,6 +94,7 @@ h1, h2 {
   color: white;
 }
 
+/* Входные поля и селекты */
 select, input {
   width: 100%;
   padding: 0.7rem;
@@ -68,6 +108,7 @@ select, input {
   box-sizing: border-box;
 }
 
+/* Кнопки */
 button {
   padding: 0.7rem 1.4rem;
   background-color: #3b82f6;
@@ -93,25 +134,27 @@ button:hover {
   background-color: #2563eb;
 }
 
+/* Карта */
 #map {
   height: 300px;
   margin-top: 1rem;
   border-radius: 0.5rem;
   max-width: 100%;
-  /* убрал max-width 600px */
 }
 
+/* Карточки промо */
 .promo-card {
   background: #2f2f45;
   border-left: 5px solid #60a5fa;
   padding: 0.7rem 1rem;
   border-radius: 0.4rem;
   margin: 0.5rem 0;
-  max-width: 600px; /* можно оставить */
+  max-width: 600px;
   margin-left: auto;
   margin-right: auto;
 }
 
+/* Нижняя навигация */
 #bottom-nav {
   position: fixed;
   bottom: 3rem; /* над футером */
@@ -123,6 +166,9 @@ button:hover {
   padding: 0.6rem 0;
   border-top: 1px solid #374151;
   z-index: 1000;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #bottom-nav button {
@@ -141,6 +187,7 @@ button:hover {
   border-bottom: 2px solid #60a5fa;
 }
 
+/* Футер */
 footer {
   text-align: center;
   padding: 1rem 0;
@@ -156,6 +203,7 @@ footer {
   pointer-events: none;
 }
 
+/* Карточки Tinder */
 .tinder-card {
   background: #2f2f45;
   padding: 1rem;
@@ -176,6 +224,7 @@ footer {
   margin-bottom: 1rem;
 }
 
+/* Информация о месте */
 #place-info {
   padding: 1rem;
   text-align: center;
@@ -196,38 +245,7 @@ footer {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Новые стили для категорий и маршрута */
-
-.category-toggle {
-  background-color: #2c2c3f;
-  color: white;
-  font-weight: bold;
-  padding: 0.6rem 1rem;
-  width: 100%;
-  text-align: left;
-  border-radius: 0.4rem;
-  margin-top: 0.5rem;
-  cursor: pointer;
-  transition: background 0.3s;
-  max-width: none; /* убрал ограничение */
-  margin-left: 0;
-  margin-right: 0;
-}
-
-.category-toggle:hover {
-  background-color: #374151;
-}
-
-.tag-container {
-  padding: 0.5rem 1rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  max-width: none; /* убрал ограничение */
-  margin-left: 0;
-  margin-right: 0;
-}
-
+/* Кнопка "следующее место" */
 #place-info button#next-place {
   margin-top: 1rem;
   background-color: #10b981;
@@ -242,17 +260,18 @@ footer {
   background-color: #059669;
 }
 
+/* Прогресс маршрута */
 #route-progress {
   text-align: center;
   font-size: 0.95rem;
   color: #9ca3af;
   margin-bottom: 1rem;
-  max-width: none; /* убрал ограничение */
-  margin-left: 0;
-  margin-right: 0;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-/* Мелкие правки для мобильных экранов */
+/* Мелкие экраны */
 @media (max-width: 360px) {
   h1, h2 {
     font-size: 1.3rem;
