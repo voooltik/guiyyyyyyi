@@ -49,32 +49,30 @@ const categoryData = {
 
 const DEFAULT_START = [57.6261, 39.8845]; // Советская площадь
 
-// Геокодируем название места в координаты через Яндекс API
 function geocode(placeName) {
   return ymaps.geocode(placeName).then(res => {
     const firstGeoObject = res.geoObjects.get(0);
     if (!firstGeoObject) throw new Error('Место не найдено');
-    return firstGeoObject.geometry.getCoordinates(); // [lat, lon]
+    return firstGeoObject.geometry.getCoordinates();
   });
 }
 
-// Функция для вычисления расстояния между двумя координатами в метрах (Haversine formula)
 function distanceBetweenCoords(coord1, coord2) {
-  const R = 6371e3; // Радиус Земли в метрах
+  const R = 6371e3;
   const lat1 = coord1[0] * Math.PI / 180;
   const lat2 = coord2[0] * Math.PI / 180;
   const deltaLat = (coord2[0] - coord1[0]) * Math.PI / 180;
   const deltaLon = (coord2[1] - coord1[1]) * Math.PI / 180;
 
-  const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+  const a = Math.sin(deltaLat / 2) ** 2 +
             Math.cos(lat1) * Math.cos(lat2) *
-            Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+            Math.sin(deltaLon / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-  return R * c; // в метрах
+  return R * c;
 }
 
-// Отрисовка маршрута между двумя координатами на Яндекс карте
+// Исправленный рендер маршрута
 function renderRouteFromTo(startCoords, endCoords) {
   if (mapInstance) mapInstance.destroy();
 
@@ -101,9 +99,10 @@ function renderRouteFromTo(startCoords, endCoords) {
 
   ymaps.route([startCoords, endCoords], {
     routingMode: 'pedestrian'
-  }).then(route => {
-    mapInstance.geoObjects.add(route);
-    mapInstance.setBounds(route.getBounds(), { checkZoomRange: true });
+  }).then(routeObj => {
+    // routeObj — объект маршрута
+    mapInstance.geoObjects.add(routeObj.getPaths());
+    mapInstance.setBounds(routeObj.getBounds(), { checkZoomRange: true });
   }).catch(err => {
     alert('Не удалось построить маршрут: ' + err.message);
   });
@@ -122,7 +121,7 @@ window.addEventListener("load", () => {
     promos: document.getElementById("promos"),
     tinder: document.getElementById("tinder-section"),
     placeInfo: document.getElementById("place-info"),
-    stats: document.getElementById("route-stats") // Добавим новый блок статистики (нужно создать в HTML)
+    stats: document.getElementById("route-stats") // Добавить в HTML блок для статистики
   };
 
   function resetNavigation() {
@@ -137,7 +136,6 @@ window.addEventListener("load", () => {
 
       if (key === "route") {
         if (route.length === 0) {
-          // Если нет маршрута — показываем главный экран с категориями
           sections.main.style.display = "block";
           resetNavigation();
           navButtons.route.classList.remove("active");
@@ -194,12 +192,12 @@ window.addEventListener("load", () => {
 
     currentStep = 0;
     stage = "map";
-    routeLengthMeters = 0;    // Сброс длины
-    routeStartTime = Date.now(); // Запуск таймера
+    routeLengthMeters = 0;
+    routeStartTime = Date.now();
 
     sections.main.style.display = "none";
     sections.route.style.display = "block";
-    sections.stats.style.display = "none";  // Скрываем статистику при старте нового маршрута
+    sections.stats.style.display = "none";
     resetNavigation();
     navButtons.route.classList.add("active");
 
@@ -306,7 +304,6 @@ window.addEventListener("load", () => {
       const nextBtn = document.getElementById("next-place");
       nextBtn.style.display = "inline-block";
       nextBtn.onclick = () => {
-        // Подсчёт расстояния между предыдущей и текущей точками и добавление к общей длине маршрута
         const prevPlace = route[currentStep];
         currentStep++;
 
@@ -339,7 +336,6 @@ window.addEventListener("load", () => {
     btn.style.display = "inline-block";
   }
 
-  // Новый блок для показа статистики после маршрута
   function finishRoute() {
     const statsSection = document.getElementById("route-stats");
     const infoSection = document.getElementById("place-info");
@@ -348,7 +344,6 @@ window.addEventListener("load", () => {
     const timeSpentMs = Date.now() - routeStartTime;
     const minutesSpent = Math.floor(timeSpentMs / 60000);
 
-    // Подсчёт финального расстояния между последними точками (если не был подсчитан)
     if (route.length > 1 && currentStep === route.length) {
       let distSum = 0;
       for (let i = 0; i < route.length - 1; i++) {
