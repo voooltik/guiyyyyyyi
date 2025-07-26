@@ -1,4 +1,3 @@
-// app.js — с Яндекс.Картами и исправленным построением маршрута
 let places = [];
 let selectedTags = new Set();
 let route = [];
@@ -46,52 +45,57 @@ const categoryData = {
   }
 };
 
+const DEFAULT_START = [57.6261, 39.8845]; // Советская площадь
+
+// Геокодируем название места в координаты через Яндекс API
 function geocode(placeName) {
   return ymaps.geocode(placeName).then(res => {
-    const obj = res.geoObjects.get(0);
-    if (!obj) throw new Error("Место не найдено");
-    return obj.geometry.getCoordinates();
+    const firstGeoObject = res.geoObjects.get(0);
+    if (!firstGeoObject) throw new Error('Место не найдено');
+    return firstGeoObject.geometry.getCoordinates(); // [lat, lon]
   });
 }
 
+// Отрисовка маршрута между двумя координатами на Яндекс карте
 function renderRouteFromTo(startCoords, endCoords) {
   if (mapInstance) mapInstance.destroy();
 
   mapInstance = new ymaps.Map("map", {
     center: startCoords,
     zoom: 14,
-    controls: ["zoomControl", "fullscreenControl"]
+    controls: ['zoomControl', 'fullscreenControl']
   });
 
-  const startMark = new ymaps.Placemark(startCoords, {
-    balloonContent: "Вы здесь"
+  const startPlacemark = new ymaps.Placemark(startCoords, {
+    balloonContent: 'Вы здесь'
   }, {
-    preset: "islands#blueCircleIcon"
+    preset: 'islands#blueCircleIcon'
   });
 
-  const endMark = new ymaps.Placemark(endCoords, {
-    balloonContent: "Место назначения"
+  const endPlacemark = new ymaps.Placemark(endCoords, {
+    balloonContent: 'Место назначения'
   }, {
-    preset: "islands#redCircleIcon"
+    preset: 'islands#redCircleIcon'
   });
 
-  mapInstance.geoObjects.add(startMark);
-  mapInstance.geoObjects.add(endMark);
+  mapInstance.geoObjects.add(startPlacemark);
+  mapInstance.geoObjects.add(endPlacemark);
 
-  ymaps.route([startCoords, endCoords], { routingMode: 'pedestrian' })
-    .then(route => {
-      mapInstance.geoObjects.add(route);
-      const bounds = route.getPaths().getBounds();
-      if (bounds) mapInstance.setBounds(bounds, { checkZoomRange: true });
-    })
-    .catch(err => alert("Не удалось построить маршрут: " + err.message));
+  ymaps.route([startCoords, endCoords], {
+    routingMode: 'pedestrian'
+  }).then(route => {
+    mapInstance.geoObjects.add(route);
+    mapInstance.setBounds(route.getBounds(), { checkZoomRange: true });
+  }).catch(err => {
+    alert('Не удалось построить маршрут: ' + err.message);
+  });
 }
 
 window.addEventListener("load", () => {
   const navButtons = {
     route: document.getElementById("nav-route"),
     promos: document.getElementById("nav-promos"),
-    tinder: document.getElementById("nav-tinder")
+    tinder: document.getElementById("nav-tinder"),
   };
 
   const sections = {
@@ -99,176 +103,197 @@ window.addEventListener("load", () => {
     route: document.getElementById("route-display"),
     promos: document.getElementById("promos"),
     tinder: document.getElementById("tinder-section"),
-    placeInfo: document.getElementById("place-info")
+    placeInfo: document.getElementById("place-info"),
   };
 
-  const resetNav = () => Object.values(navButtons).forEach(btn => btn.classList.remove("active"));
+  function resetNavigation() {
+    Object.values(navButtons).forEach(b => b.classList.remove("active"));
+  }
 
   Object.entries(navButtons).forEach(([key, btn]) => {
     btn.addEventListener("click", () => {
       Object.values(sections).forEach(s => s.style.display = "none");
-      resetNav();
+      resetNavigation();
       btn.classList.add("active");
-      if (key === "route" && route.length === 0) {
-        sections.main.style.display = "block";
-        return;
+
+      if (key === "route") {
+        if (route.length === 0) {
+          // Если нет маршрута — показываем главный экран с категориями
+          sections.main.style.display = "block";
+          resetNavigation();
+          navButtons.route.classList.remove("active");
+          return;
+        }
       }
+
       sections[key].style.display = "block";
-      if (key === "tinder") renderTinderCard();
+
+      if (key === "tinder") {
+        renderTinderCard();
+        document.getElementById("tinder-card").style.display = "block";
+        document.querySelector(".tinder-buttons").style.display = "flex";
+        document.getElementById("back-to-main").style.display = "inline-block";
+      }
     });
   });
 
   renderCategoryMenu();
 
   fetch("./places.json")
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error("Ошибка загрузки places.json");
+      return res.json();
+    })
     .then(data => {
       places = data;
       renderTinderCard();
     })
-    .catch(() => alert("Не удалось загрузить места"));
+    .catch(err => {
+      console.error(err);
+      alert("Не удалось загрузить места");
+      document.getElementById("tinder-card").textContent = "Места не загружены.";
+    });
 
   document.getElementById("show-route").addEventListener("click", () => {
-    if (selectedTags.size === 0) return alert("Выберите хотя бы одну категорию");
-
-    const age = document.getElementById("age").value;
-    const duration = +document.getElementById("duration").value;
+    if (selectedTags.size === 0) {
+      alert("Пожалуйста, выберите хотя бы одну категорию.");
+      return;
+    }
+    const ageFilter = document.getElementById("age").value;
+    const duration = parseInt(document.getElementById("duration").value);
     const maxPlaces = duration * 2;
-    const start = document.getElementById("startInput").value.trim() || "Советская площадь";
 
     route = places.filter(p =>
-      p.tags.some(tag => selectedTags.has(tag)) && (age === "all" || p.age === age || p.age === "all")
+      p.tags.some(tag => selectedTags.has(tag)) &&
+      (ageFilter === "all" || p.age === ageFilter || p.age === "all")
     ).slice(0, maxPlaces);
 
-    if (!route.length) return alert("Нет подходящих мест");
+    if (route.length === 0) {
+      alert("По выбранным категориям нет подходящих мест.");
+      return;
+    }
 
     currentStep = 0;
     stage = "map";
+
     sections.main.style.display = "none";
     sections.route.style.display = "block";
-    resetNav();
+    resetNavigation();
     navButtons.route.classList.add("active");
 
-    geocode(start)
-      .then(startCoords => renderRouteFromTo(startCoords, route[0].coordinates))
-      .then(() => showStep())
+    const startPointName = document.getElementById("startInput").value.trim() || "Советская площадь";
+    geocode(startPointName)
+      .then(startCoords => {
+        renderRouteFromTo(startCoords, route[currentStep].coordinates);
+        showStep();
+      })
       .catch(() => {
-        renderRouteFromTo([57.6261, 39.8845], route[0].coordinates);
+        renderRouteFromTo(DEFAULT_START, route[currentStep].coordinates);
         showStep();
       });
   });
 
+  document.getElementById("back-from-place-info").addEventListener("click", () => {
+    sections.placeInfo.style.display = "none";
+    sections.route.style.display = "block";
+  });
+
+  document.getElementById("back-to-main").addEventListener("click", () => {
+    sections.tinder.style.display = "none";
+    sections.main.style.display = "block";
+    resetNavigation();
+    navButtons.route.classList.add("active");
+  });
+
   function renderTinderCard() {
     const card = document.getElementById("tinder-card");
-    if (tinderIndex >= places.length) return card.textContent = "Больше мест нет";
+    if (!places.length) {
+      card.textContent = "Места не загружены.";
+      return;
+    }
+    if (tinderIndex >= places.length) {
+      card.textContent = "Больше мест нет.";
+      return;
+    }
     const place = places[tinderIndex];
-    card.innerHTML = `<h3>${place.name}</h3><img src="${place.image}" alt="${place.name}" style="width:100%; border-radius:8px; margin-bottom:8px;"><p>${place.description}</p>`;
+    card.innerHTML = `
+      <h3>${place.name}</h3>
+      <img src="${place.image}" alt="${place.name}" style="width:100%; border-radius:8px; margin-bottom:8px;" />
+      <p>${place.description}</p>
+    `;
   }
 
-  document.getElementById("skip").onclick = () => {
+  document.getElementById("skip").addEventListener("click", () => {
     tinderIndex++;
     renderTinderCard();
-  };
+  });
 
-  document.getElementById("go").onclick = () => {
-    if (!places[tinderIndex]) return;
+  document.getElementById("go").addEventListener("click", () => {
+    if (!places.length || tinderIndex >= places.length) return;
+
     route = [places[tinderIndex]];
     currentStep = 0;
     stage = "map";
+
     sections.tinder.style.display = "none";
     sections.route.style.display = "block";
-    resetNav();
+
+    resetNavigation();
     navButtons.route.classList.add("active");
-    const start = document.getElementById("startInput").value.trim() || "Советская площадь";
-    geocode(start)
-      .then(startCoords => renderRouteFromTo(startCoords, route[0].coordinates))
-      .then(() => showStep())
+
+    const startPointName = document.getElementById("startInput").value.trim() || "Советская площадь";
+
+    geocode(startPointName)
+      .then(startCoords => {
+        renderRouteFromTo(startCoords, route[0].coordinates);
+        showStep();
+      })
       .catch(() => {
-        renderRouteFromTo([57.6261, 39.8845], route[0].coordinates);
+        renderRouteFromTo(DEFAULT_START, route[0].coordinates);
         showStep();
       });
-  };
+  });
 
   function showStep() {
+    const routeSection = document.getElementById("route-display");
+    const infoSection = document.getElementById("place-info");
     const place = route[currentStep];
+
     if (stage === "map") {
-      sections.placeInfo.style.display = "none";
-      sections.route.style.display = "block";
+      infoSection.style.display = "none";
+      routeSection.style.display = "block";
+
       document.getElementById("route-progress").innerHTML = `<h2>${place.name}</h2>`;
       showButton("i-am-here", "Я тут", () => {
         stage = "info";
         showStep();
       });
-    } else {
-      sections.route.style.display = "none";
-      sections.placeInfo.style.display = "block";
+    } else if (stage === "info") {
+      routeSection.style.display = "none";
+      infoSection.style.display = "block";
+
       document.getElementById("place-img").src = place.image;
       document.getElementById("place-name").textContent = place.name;
       document.getElementById("place-desc").textContent = place.description;
-      document.getElementById("audio-btn").onclick = () => alert("Аудиогид скоро");
+
+      document.getElementById("audio-btn").onclick = () => alert("Аудиогид скоро будет доступен.");
+
       const nextBtn = document.getElementById("next-place");
+      nextBtn.style.display = "inline-block";
       nextBtn.onclick = () => {
         currentStep++;
-        if (currentStep >= route.length) return finishRoute();
+        if (currentStep >= route.length) {
+          finishRoute();
+          return;
+        }
         stage = "map";
-        const prev = route[currentStep - 1];
-        const next = route[currentStep];
-        renderRouteFromTo(prev.coordinates, next.coordinates);
+
+        const prevPlace = route[currentStep - 1];
+        const nextPlace = route[currentStep];
+
+        renderRouteFromTo(prevPlace.coordinates, nextPlace.coordinates);
         showStep();
       };
-    }
-  }
-
-  function finishRoute() {
-    alert("🎉 Маршрут завершён!");
-    route = [];
-    currentStep = 0;
-    stage = "map";
-    sections.placeInfo.style.display = "none";
-    sections.route.style.display = "none";
-    sections.main.style.display = "block";
-    resetNav();
-    navButtons.route.classList.remove("active");
-    selectedTags.clear();
-    renderCategoryMenu();
-  }
-
-  function renderCategoryMenu() {
-    const container = document.getElementById("categories");
-    container.innerHTML = "";
-    for (let [group, tags] of Object.entries(categoryData)) {
-      const groupDiv = document.createElement("div");
-      const toggle = document.createElement("button");
-      toggle.type = "button";
-      toggle.className = "category-toggle";
-      toggle.textContent = group;
-      const tagWrap = document.createElement("div");
-      tagWrap.className = "tag-container";
-      tagWrap.style.display = "none";
-
-      toggle.onclick = () => {
-        tagWrap.style.display = tagWrap.style.display === "none" ? "grid" : "none";
-      };
-
-      for (let [tag, label] of Object.entries(tags)) {
-        const el = document.createElement("div");
-        el.className = "activity-circle";
-        el.dataset.tag = tag;
-        el.textContent = label;
-        el.onclick = () => {
-          if (selectedTags.has(tag)) {
-            selectedTags.delete(tag);
-            el.classList.remove("selected");
-          } else {
-            selectedTags.add(tag);
-            el.classList.add("selected");
-          }
-        };
-        tagWrap.appendChild(el);
-      }
-      groupDiv.appendChild(toggle);
-      groupDiv.appendChild(tagWrap);
-      container.appendChild(groupDiv);
     }
   }
 
@@ -278,10 +303,72 @@ window.addEventListener("load", () => {
       btn = document.createElement("button");
       btn.id = id;
       btn.style.marginTop = "10px";
-      document.getElementById("route-progress").appendChild(btn);
+      const container = document.getElementById("route-progress");
+      container.appendChild(btn);
     }
     btn.textContent = text;
     btn.onclick = onClick;
     btn.style.display = "inline-block";
+  }
+
+  function finishRoute() {
+    alert("🎉 Поздравляем! Маршрут завершён.");
+
+    route = [];
+    currentStep = 0;
+    stage = "map";
+
+    sections.placeInfo.style.display = "none";
+    sections.route.style.display = "none";
+    sections.main.style.display = "block";
+
+    resetNavigation();
+    navButtons.route.classList.remove("active");
+
+    selectedTags.clear();
+    renderCategoryMenu();
+  }
+
+  function renderCategoryMenu() {
+    const container = document.getElementById("categories");
+    container.innerHTML = "";
+    for (let [groupName, tags] of Object.entries(categoryData)) {
+      const groupDiv = document.createElement("div");
+      const toggleBtn = document.createElement("button");
+      toggleBtn.type = "button";
+      toggleBtn.className = "category-toggle";
+      toggleBtn.textContent = groupName;
+
+      const tagWrap = document.createElement("div");
+      tagWrap.className = "tag-container";
+      tagWrap.style.display = "none";
+
+      toggleBtn.onclick = () => {
+        tagWrap.style.display = tagWrap.style.display === "none" ? "grid" : "none";
+      };
+
+      for (let [tag, label] of Object.entries(tags)) {
+        const tagEl = document.createElement("div");
+        tagEl.className = "activity-circle";
+        tagEl.dataset.tag = tag;
+        tagEl.textContent = label;
+
+        tagEl.onclick = () => {
+          if (selectedTags.has(tag)) {
+            selectedTags.delete(tag);
+            tagEl.classList.remove("selected");
+          } else {
+            selectedTags.add(tag);
+            tagEl.classList.add("selected");
+          }
+        };
+
+        tagWrap.appendChild(tagEl);
+      }
+
+      groupDiv.appendChild(toggleBtn);
+      groupDiv.appendChild(tagWrap);
+      container.appendChild(groupDiv);
+    }
   }
 });
