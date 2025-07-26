@@ -13,14 +13,14 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding-top: calc(env(safe-area-inset-top, 20px) + 50px);
-  padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 60px);
+  padding-top: calc(env(safe-area-inset-top, 20px) + 30px);
+  padding-bottom: 120px; /* Увеличено, чтобы кнопка не уходила под навигацию */
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Основной контейнер с фиксированной шириной и центрированием */
+/* Основной контейнер */
 .container,
 #route-display,
 #promos,
@@ -115,16 +115,14 @@ button {
   font-weight: bold;
   font-size: 1.1rem;
   cursor: pointer;
-  margin: 0.3rem 0;
-  min-height: 44px;
+  margin: 0.5rem auto;
+  min-height: 48px;
   transition: background 0.2s ease;
   user-select: none;
   touch-action: manipulation;
   width: 100%;
   max-width: 400px;
   display: block;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 button:hover {
@@ -139,7 +137,7 @@ button:hover {
   max-width: 100%;
 }
 
-/* Карточки промо */
+/* Промо-карты */
 .promo-card {
   background: #2f2f45;
   border-left: 5px solid #60a5fa;
@@ -154,7 +152,7 @@ button:hover {
 /* Нижняя навигация */
 #bottom-nav {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 20px) + 3rem);
+  bottom: 0;
   left: 0;
   right: 0;
   background: #111827;
@@ -166,6 +164,7 @@ button:hover {
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
+  height: 60px;
 }
 
 #bottom-nav button {
@@ -187,20 +186,17 @@ button:hover {
 /* Футер */
 footer {
   text-align: center;
-  padding: 1rem 0;
+  padding: 0.8rem 0;
   font-size: 0.9rem;
   color: #9ca3af;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
   background: rgba(17, 24, 39, 0.85);
-  z-index: 10000;
+  position: relative;
+  z-index: 0;
   user-select: none;
   pointer-events: none;
 }
 
-/* Карточки Tinder */
+/* Tinder */
 .tinder-card {
   background: #2f2f45;
   padding: 1rem;
@@ -268,7 +264,7 @@ footer {
   margin-right: auto;
 }
 
-/* Мелкие экраны */
+/* Адаптация для маленьких экранов */
 @media (max-width: 360px) {
   h1, h2 {
     font-size: 1.3rem;
