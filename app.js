@@ -101,9 +101,9 @@ function renderRouteFromTo(startCoords, endCoords) {
 
   ymaps.route([startCoords, endCoords], {
     routingMode: 'pedestrian'
-  }).then(routeObj => {
-    mapInstance.geoObjects.add(routeObj.getPaths());
-    mapInstance.setBounds(routeObj.getPaths().getBounds(), { checkZoomRange: true });
+  }).then(route => {
+    mapInstance.geoObjects.add(route);
+    mapInstance.setBounds(route.getBounds(), { checkZoomRange: true });
   }).catch(err => {
     alert('Не удалось построить маршрут: ' + err.message);
   });
@@ -122,7 +122,7 @@ window.addEventListener("load", () => {
     promos: document.getElementById("promos"),
     tinder: document.getElementById("tinder-section"),
     placeInfo: document.getElementById("place-info"),
-    stats: document.getElementById("route-stats") // Блок статистики (нужно добавить в HTML)
+    stats: document.getElementById("route-stats") // Добавим новый блок статистики (нужно создать в HTML)
   };
 
   function resetNavigation() {
@@ -238,11 +238,11 @@ window.addEventListener("load", () => {
       return;
     }
     const place = places[tinderIndex];
-    card.innerHTML = `
+    card.innerHTML = 
       <h3>${place.name}</h3>
       <img src="${place.image}" alt="${place.name}" style="width:100%; border-radius:8px; margin-bottom:8px;" />
       <p>${place.description}</p>
-    `;
+    ;
   }
 
   document.getElementById("skip").addEventListener("click", () => {
@@ -288,7 +288,7 @@ window.addEventListener("load", () => {
       infoSection.style.display = "none";
       routeSection.style.display = "block";
 
-      document.getElementById("route-progress").innerHTML = `<h2>${place.name}</h2>`;
+      document.getElementById("route-progress").innerHTML = <h2>${place.name}</h2>;
       showButton("i-am-here", "Я тут", () => {
         stage = "info";
         showStep();
@@ -361,14 +361,14 @@ window.addEventListener("load", () => {
     routeSection.style.display = "none";
     statsSection.style.display = "block";
 
-    statsSection.innerHTML = `
+    statsSection.innerHTML = 
       <h2>Статистика прогулки</h2>
       <p>Посещено мест: <b>${route.length}</b></p>
       <p>Общая длина маршрута: <b>${(routeLengthMeters / 1000).toFixed(2)} км</b></p>
       <p>Прогулка заняла: <b>${minutesSpent} минут</b></p>
       <p>Пройдено шагов (примерно): <b>${Math.round((routeLengthMeters / 1000) * 1300)}</b></p>
       <button id="start-new-route">Начать новый маршрут</button>
-    `;
+    ;
 
     document.getElementById("start-new-route").onclick = () => {
       statsSection.style.display = "none";
