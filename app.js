@@ -5,8 +5,6 @@ let currentStep = 0;
 let stage = "map"; // "map" или "info"
 let mapInstance = null;
 let tinderIndex = 0;
-let routeStartTime = null;  // Для таймера
-let routeLengthMeters = 0;  // Для подсчёта длины маршрута
 
 const categoryData = {
   "🖼 Культурное": {
@@ -58,22 +56,6 @@ function geocode(placeName) {
   });
 }
 
-// Функция для вычисления расстояния между двумя координатами в метрах (Haversine formula)
-function distanceBetweenCoords(coord1, coord2) {
-  const R = 6371e3; // Радиус Земли в метрах
-  const lat1 = coord1[0] * Math.PI / 180;
-  const lat2 = coord2[0] * Math.PI / 180;
-  const deltaLat = (coord2[0] - coord1[0]) * Math.PI / 180;
-  const deltaLon = (coord2[1] - coord1[1]) * Math.PI / 180;
-
-  const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-            Math.cos(lat1) * Math.cos(lat2) *
-            Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c; // в метрах
-}
-
 // Отрисовка маршрута между двумя координатами на Яндекс карте
 function renderRouteFromTo(startCoords, endCoords) {
   if (mapInstance) mapInstance.destroy();
@@ -122,7 +104,6 @@ window.addEventListener("load", () => {
     promos: document.getElementById("promos"),
     tinder: document.getElementById("tinder-section"),
     placeInfo: document.getElementById("place-info"),
-    stats: document.getElementById("route-stats") // Добавим новый блок статистики (нужно создать в HTML)
   };
 
   function resetNavigation() {
@@ -194,12 +175,9 @@ window.addEventListener("load", () => {
 
     currentStep = 0;
     stage = "map";
-    routeLengthMeters = 0;    // Сброс длины
-    routeStartTime = Date.now(); // Запуск таймера
 
     sections.main.style.display = "none";
     sections.route.style.display = "block";
-    sections.stats.style.display = "none";  // Скрываем статистику при старте нового маршрута
     resetNavigation();
     navButtons.route.classList.add("active");
 
@@ -238,11 +216,11 @@ window.addEventListener("load", () => {
       return;
     }
     const place = places[tinderIndex];
-    card.innerHTML = 
+    card.innerHTML = `
       <h3>${place.name}</h3>
       <img src="${place.image}" alt="${place.name}" style="width:100%; border-radius:8px; margin-bottom:8px;" />
       <p>${place.description}</p>
-    ;
+    `;
   }
 
   document.getElementById("skip").addEventListener("click", () => {
@@ -256,12 +234,9 @@ window.addEventListener("load", () => {
     route = [places[tinderIndex]];
     currentStep = 0;
     stage = "map";
-    routeLengthMeters = 0;
-    routeStartTime = Date.now();
 
     sections.tinder.style.display = "none";
     sections.route.style.display = "block";
-    sections.stats.style.display = "none";
 
     resetNavigation();
     navButtons.route.classList.add("active");
@@ -288,7 +263,7 @@ window.addEventListener("load", () => {
       infoSection.style.display = "none";
       routeSection.style.display = "block";
 
-      document.getElementById("route-progress").innerHTML = <h2>${place.name}</h2>;
+      document.getElementById("route-progress").innerHTML = `<h2>${place.name}</h2>`;
       showButton("i-am-here", "Я тут", () => {
         stage = "info";
         showStep();
@@ -306,19 +281,16 @@ window.addEventListener("load", () => {
       const nextBtn = document.getElementById("next-place");
       nextBtn.style.display = "inline-block";
       nextBtn.onclick = () => {
-        // Подсчёт расстояния между предыдущей и текущей точками и добавление к общей длине маршрута
-        const prevPlace = route[currentStep];
         currentStep++;
-
         if (currentStep >= route.length) {
           finishRoute();
           return;
         }
-
-        const nextPlace = route[currentStep];
-        routeLengthMeters += distanceBetweenCoords(prevPlace.coordinates, nextPlace.coordinates);
-
         stage = "map";
+
+        const prevPlace = route[currentStep - 1];
+        const nextPlace = route[currentStep];
+
         renderRouteFromTo(prevPlace.coordinates, nextPlace.coordinates);
         showStep();
       };
@@ -339,50 +311,22 @@ window.addEventListener("load", () => {
     btn.style.display = "inline-block";
   }
 
-  // Новый блок для показа статистики после маршрута
   function finishRoute() {
-    const statsSection = document.getElementById("route-stats");
-    const infoSection = document.getElementById("place-info");
-    const routeSection = document.getElementById("route-display");
-
-    const timeSpentMs = Date.now() - routeStartTime;
-    const minutesSpent = Math.floor(timeSpentMs / 60000);
-
-    // Подсчёт финального расстояния между последними точками (если не был подсчитан)
-    if (route.length > 1 && currentStep === route.length) {
-      let distSum = 0;
-      for (let i = 0; i < route.length - 1; i++) {
-        distSum += distanceBetweenCoords(route[i].coordinates, route[i + 1].coordinates);
-      }
-      routeLengthMeters = distSum;
-    }
-
-    infoSection.style.display = "none";
-    routeSection.style.display = "none";
-    statsSection.style.display = "block";
-
-    statsSection.innerHTML = 
-      <h2>Статистика прогулки</h2>
-      <p>Посещено мест: <b>${route.length}</b></p>
-      <p>Общая длина маршрута: <b>${(routeLengthMeters / 1000).toFixed(2)} км</b></p>
-      <p>Прогулка заняла: <b>${minutesSpent} минут</b></p>
-      <p>Пройдено шагов (примерно): <b>${Math.round((routeLengthMeters / 1000) * 1300)}</b></p>
-      <button id="start-new-route">Начать новый маршрут</button>
-    ;
-
-    document.getElementById("start-new-route").onclick = () => {
-      statsSection.style.display = "none";
-      sections.main.style.display = "block";
-      resetNavigation();
-      navButtons.route.classList.remove("active");
-      selectedTags.clear();
-      renderCategoryMenu();
-    };
+    alert("🎉 Поздравляем! Маршрут завершён.");
 
     route = [];
     currentStep = 0;
-    routeStartTime = null;
-    routeLengthMeters = 0;
+    stage = "map";
+
+    sections.placeInfo.style.display = "none";
+    sections.route.style.display = "none";
+    sections.main.style.display = "block";
+
+    resetNavigation();
+    navButtons.route.classList.remove("active");
+
+    selectedTags.clear();
+    renderCategoryMenu();
   }
 
   function renderCategoryMenu() {
